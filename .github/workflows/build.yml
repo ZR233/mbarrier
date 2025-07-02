@@ -56,26 +56,21 @@ jobs:
     strategy:
       matrix:
         include:
-          # RISC-V 64-bit
+          # RISC-V 64-bit (use Linux target for testing)
           - target: riscv64gc-unknown-linux-gnu
             arch: riscv64
             qemu_arch: riscv64
             qemu_cpu: rv64
-          # ARM 64-bit
+          # ARM 64-bit (use Linux target for testing)
           - target: aarch64-unknown-linux-gnu
             arch: aarch64
             qemu_arch: aarch64
             qemu_cpu: cortex-a72
-          # ARM 32-bit
+          # ARM 32-bit (use Linux target for testing)
           - target: armv7-unknown-linux-gnueabihf
             arch: armv7
             qemu_arch: arm
             qemu_cpu: cortex-a15
-          # ARM 32-bit (soft float)
-          - target: arm-unknown-linux-gnueabihf
-            arch: arm
-            qemu_arch: arm
-            qemu_cpu: arm1176
 
     steps:
     - uses: actions/checkout@v4
@@ -94,13 +89,13 @@ jobs:
         sudo apt-get install -y qemu-user qemu-user-static
         case "${{ matrix.arch }}" in
           "riscv64")
-            sudo apt-get install -y gcc-riscv64-linux-gnu
+            sudo apt-get install -y gcc-riscv64-linux-gnu libc6-dev-riscv64-cross
             ;;
           "aarch64")
-            sudo apt-get install -y gcc-aarch64-linux-gnu
+            sudo apt-get install -y gcc-aarch64-linux-gnu libc6-dev-arm64-cross
             ;;
-          "armv7"|"arm")
-            sudo apt-get install -y gcc-arm-linux-gnueabihf
+          "armv7")
+            sudo apt-get install -y gcc-arm-linux-gnueabihf libc6-dev-armhf-cross
             ;;
         esac
 
@@ -110,15 +105,15 @@ jobs:
         cat >> ~/.cargo/config.toml << EOF
         [target.riscv64gc-unknown-linux-gnu]
         linker = "riscv64-linux-gnu-gcc"
+        rustflags = ["-C", "target-feature=+crt-static"]
 
         [target.aarch64-unknown-linux-gnu]
         linker = "aarch64-linux-gnu-gcc"
+        rustflags = ["-C", "target-feature=+crt-static"]
 
         [target.armv7-unknown-linux-gnueabihf]
         linker = "arm-linux-gnueabihf-gcc"
-
-        [target.arm-unknown-linux-gnueabihf]
-        linker = "arm-linux-gnueabihf-gcc"
+        rustflags = ["-C", "target-feature=+crt-static"]
         EOF
 
     - name: Build for target

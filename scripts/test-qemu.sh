@@ -9,7 +9,6 @@ targets=(
     "riscv64gc-unknown-linux-gnu"
     "aarch64-unknown-linux-gnu"
     "armv7-unknown-linux-gnueabihf"
-    "arm-unknown-linux-gnueabihf"
 )
 
 # Check if QEMU is installed

@@ -21,7 +21,6 @@ path = "examples/usage.rs"
 [[example]]
 name = "performance"
 path = "examples/performance.rs"
-required-features = ["std"]
 
 [profile.release]
 codegen-units = 1
