@@ -1,14 +1,19 @@
 /*!
-RISC-V 32-bit architecture memory barrier implementations.
+RISC-V architecture memory barrier implementations.
 
 Based on Linux kernel arch/riscv/include/asm/barrier.h
+
+Both RISC-V 32-bit and 64-bit share the same memory barrier semantics:
+- Relaxed memory model requiring explicit ordering
+- Uses FENCE instruction with r,r / w,w / rw,rw ordering
+- Same instruction set for memory barriers
 */
 
 use core::arch::asm;
-use core::sync::atomic::{fence, Ordering};
+use core::sync::atomic::{Ordering, fence};
 
-/// RISC-V 32 read memory barrier implementation.
-/// 
+/// RISC-V read memory barrier implementation.
+///
 /// Uses FENCE instruction with r,r (read-read) ordering.
 #[inline(always)]
 pub fn rmb_impl() {
@@ -17,8 +22,8 @@ pub fn rmb_impl() {
     }
 }
 
-/// RISC-V 32 write memory barrier implementation.
-/// 
+/// RISC-V write memory barrier implementation.
+///
 /// Uses FENCE instruction with w,w (write-write) ordering.
 #[inline(always)]
 pub fn wmb_impl() {
@@ -27,8 +32,8 @@ pub fn wmb_impl() {
     }
 }
 
-/// RISC-V 32 general memory barrier implementation.
-/// 
+/// RISC-V general memory barrier implementation.
+///
 /// Uses FENCE instruction with rw,rw (read-write, read-write) ordering.
 #[inline(always)]
 pub fn mb_impl() {
@@ -37,8 +42,8 @@ pub fn mb_impl() {
     }
 }
 
-/// RISC-V 32 data dependency barrier implementation.
-/// 
+/// RISC-V data dependency barrier implementation.
+///
 /// RISC-V has a relaxed memory model, so we need an actual barrier.
 #[inline(always)]
 pub fn read_barrier_depends_impl() {
