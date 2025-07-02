@@ -63,7 +63,7 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 }
 
 // Entry point for no_std
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
     main();
     loop {}
