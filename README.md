@@ -1,5 +1,11 @@
 # mbarrier
 
+[![CI](https://github.com/ZR233/mbarrier/workflows/CI/badge.svg)](https://github.com/ZR233/mbarrier/actions/workflows/ci.yml)
+[![Cross-platform](https://github.com/ZR233/mbarrier/workflows/Cross-platform%20Test/badge.svg)](https://github.com/ZR233/mbarrier/actions/workflows/cross-platform.yml)
+[![Architecture Tests](https://github.com/ZR233/mbarrier/workflows/Architecture-specific%20Tests/badge.svg)](https://github.com/ZR233/mbarrier/actions/workflows/arch-specific.yml)
+[![Crates.io](https://img.shields.io/crates/v/mbarrier.svg)](https://crates.io/crates/mbarrier)
+[![Documentation](https://docs.rs/mbarrier/badge.svg)](https://docs.rs/mbarrier)
+
 跨平台的 Rust 内存屏障实现，参考 Linux 内核设计。
 
 ## 特性
@@ -9,6 +15,18 @@
 - 📦 无标准库依赖：适用于嵌入式和内核开发
 - ⚡ 高性能：内联汇编实现，零开销抽象
 - 🎯 SMP 感知：支持单处理器和多处理器环境
+- ✅ 持续集成：在多种架构上进行测试验证
+
+## 支持的架构
+
+| 架构 | 状态 | 测试方式 |
+|------|------|----------|
+| x86_64 | ✅ | 原生 + 交叉编译 |
+| x86 (32-bit) | ✅ | 交叉编译 |
+| AArch64 | ✅ | QEMU + 交叉编译 |
+| ARM (32-bit) | ✅ | QEMU + 交叉编译 |
+| RISC-V 64 | ✅ | QEMU + 交叉编译 |
+| RISC-V 32 | ✅ | 交叉编译 |
 
 ## 内存屏障类型
 
@@ -20,7 +38,6 @@
 | `smp_rmb()` | SMP 读屏障 - 在 SMP 系统上等同于 rmb()，在 UP 系统上仅为编译器屏障 |
 | `smp_wmb()` | SMP 写屏障 - 在 SMP 系统上等同于 wmb()，在 UP 系统上仅为编译器屏障 |
 | `smp_mb()` | SMP 通用屏障 - 在 SMP 系统上等同于 mb()，在 UP 系统上仅为编译器屏障 |
-| `read_barrier_depends()` | 数据依赖屏障 - 确保依赖读操作的正确顺序 |
 
 ## 使用示例
 

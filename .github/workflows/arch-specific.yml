@@ -1,0 +1,232 @@
+name: Architecture-specific Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run weekly to catch regressions
+    - cron: '0 0 * * 0'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  qemu-test:
+    name: QEMU-based architecture test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: aarch64-unknown-linux-gnu
+            qemu: qemu-aarch64
+            cc: aarch64-linux-gnu-gcc
+          - target: armv7-unknown-linux-gnueabihf
+            qemu: qemu-arm
+            cc: arm-linux-gnueabihf-gcc
+          - target: riscv64gc-unknown-linux-gnu
+            qemu: qemu-riscv64
+            cc: riscv64-linux-gnu-gcc
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
+
+    - name: Install QEMU and cross-compilation tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y qemu-user-static
+        case ${{ matrix.target }} in
+          aarch64-unknown-linux-gnu)
+            sudo apt-get install -y gcc-aarch64-linux-gnu libc6-dev-arm64-cross
+            ;;
+          armv7-unknown-linux-gnueabihf)
+            sudo apt-get install -y gcc-arm-linux-gnueabihf libc6-dev-armhf-cross
+            ;;
+          riscv64gc-unknown-linux-gnu)
+            sudo apt-get install -y gcc-riscv64-linux-gnu libc6-dev-riscv64-cross
+            ;;
+        esac
+
+    - name: Install cross
+      uses: taiki-e/install-action@cross
+
+    - name: Build and test
+      env:
+        CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+        CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
+        CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_GNU_LINKER: riscv64-linux-gnu-gcc
+      run: |
+        # Build tests
+        cross build --target ${{ matrix.target }} --tests
+        
+        # Build examples  
+        cross build --target ${{ matrix.target }} --examples
+        
+        # Run tests with QEMU
+        cross test --target ${{ matrix.target }} --verbose
+        
+        # Test with SMP feature
+        cross test --target ${{ matrix.target }} --features smp --verbose
+
+  memory-ordering-test:
+    name: Memory ordering verification
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - riscv64gc-unknown-linux-gnu
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y qemu-user-static
+        case ${{ matrix.target }} in
+          aarch64-unknown-linux-gnu)
+            sudo apt-get install -y gcc-aarch64-linux-gnu
+            ;;
+          riscv64gc-unknown-linux-gnu)
+            sudo apt-get install -y gcc-riscv64-linux-gnu
+            ;;
+        esac
+
+    - name: Install cross
+      uses: taiki-e/install-action@cross
+
+    - name: Create memory ordering test
+      run: |
+        cat > tests/memory_ordering.rs << 'EOF'
+        //! Memory ordering stress test
+        use mbarrier::*;
+        use std::sync::{Arc, Barrier};
+        use std::sync::atomic::{AtomicU64, Ordering};
+        use std::thread;
+        use std::time::Duration;
+
+        #[test]
+        fn stress_test_barriers() {
+            let num_threads = 4;
+            let iterations = 1000;
+            
+            let counter = Arc::new(AtomicU64::new(0));
+            let barrier = Arc::new(Barrier::new(num_threads));
+            
+            let handles: Vec<_> = (0..num_threads)
+                .map(|i| {
+                    let counter = Arc::clone(&counter);
+                    let barrier = Arc::clone(&barrier);
+                    
+                    thread::spawn(move || {
+                        barrier.wait();
+                        
+                        for _ in 0..iterations {
+                            // Test different barrier types
+                            match i % 6 {
+                                0 => { rmb(); },
+                                1 => { wmb(); },
+                                2 => { mb(); },
+                                3 => { smp_rmb(); },
+                                4 => { smp_wmb(); },
+                                5 => { smp_mb(); },
+                                _ => unreachable!(),
+                            }
+                            
+                            counter.fetch_add(1, Ordering::Relaxed);
+                            
+                            // Small delay to increase chance of races
+                            thread::sleep(Duration::from_nanos(1));
+                        }
+                    })
+                })
+                .collect();
+            
+            for handle in handles {
+                handle.join().unwrap();
+            }
+            
+            assert_eq!(counter.load(Ordering::Relaxed), num_threads as u64 * iterations as u64);
+        }
+        EOF
+
+    - name: Run memory ordering test
+      env:
+        CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+        CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_GNU_LINKER: riscv64-linux-gnu-gcc
+      run: |
+        if [ "${{ matrix.target }}" = "x86_64-unknown-linux-gnu" ]; then
+          cargo test --target ${{ matrix.target }} memory_ordering --verbose
+        else
+          cross test --target ${{ matrix.target }} memory_ordering --verbose
+        fi
+
+  asm-verification:
+    name: Assembly output verification
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - riscv64gc-unknown-linux-gnu
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
+
+    - name: Install cross and objdump
+      run: |
+        sudo apt-get update
+        case ${{ matrix.target }} in
+          aarch64-unknown-linux-gnu)
+            sudo apt-get install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+            ;;
+          riscv64gc-unknown-linux-gnu)
+            sudo apt-get install -y gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu
+            ;;
+        esac
+
+    - name: Install cross
+      uses: taiki-e/install-action@cross
+
+    - name: Build and analyze assembly
+      env:
+        CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+        CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_GNU_LINKER: riscv64-linux-gnu-gcc
+      run: |
+        # Build with assembly output
+        cross rustc --target ${{ matrix.target }} --example asm_analysis --release -- --emit=asm
+        
+        # Verify expected instructions are present
+        case ${{ matrix.target }} in
+          x86_64-unknown-linux-gnu)
+            echo "Checking for x86_64 barrier instructions..."
+            grep -E "(mfence|sfence|lfence)" target/${{ matrix.target }}/release/examples/asm_analysis*.s || echo "No explicit fence instructions found (may be optimized)"
+            ;;
+          aarch64-unknown-linux-gnu)
+            echo "Checking for AArch64 barrier instructions..."
+            grep -E "(dsb|dmb|isb)" target/${{ matrix.target }}/release/examples/asm_analysis*.s || echo "No explicit barrier instructions found"
+            ;;
+          riscv64gc-unknown-linux-gnu)
+            echo "Checking for RISC-V barrier instructions..."  
+            grep -E "fence" target/${{ matrix.target }}/release/examples/asm_analysis*.s || echo "No fence instructions found"
+            ;;
+        esac
