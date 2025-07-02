@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          # x86 targets
+          - x86_64-unknown-none
+          - i686-unknown-none
+          # ARM targets
+          - aarch64-unknown-none
+          - armv7-unknown-linux-gnueabihf
+          - arm-unknown-linux-gnueabihf
+          # RISC-V targets
+          - riscv64gc-unknown-none
+          - riscv32gc-unknown-none
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        target: ${{ matrix.target }}
+        override: true
+        components: rustfmt, clippy
+
+    - name: Build
+      run: cargo build --target ${{ matrix.target }} --verbose
+
+    - name: Build with SMP feature
+      run: cargo build --target ${{ matrix.target }} --features smp --verbose
+
+    - name: Build examples
+      run: cargo build --examples --verbose
+
+    - name: Run tests
+      run: cargo test --verbose
+
+
+

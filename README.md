@@ -1,8 +1,6 @@
 # mbarrier
 
-[![CI](https://github.com/ZR233/mbarrier/workflows/CI/badge.svg)](https://github.com/ZR233/mbarrier/actions/workflows/ci.yml)
-[![Cross-platform](https://github.com/ZR233/mbarrier/workflows/Cross-platform%20Test/badge.svg)](https://github.com/ZR233/mbarrier/actions/workflows/cross-platform.yml)
-[![Architecture Tests](https://github.com/ZR233/mbarrier/workflows/Architecture-specific%20Tests/badge.svg)](https://github.com/ZR233/mbarrier/actions/workflows/arch-specific.yml)
+[![CI](https://github.com/ZR233/mbarrier/workflows/BUILD/badge.svg)](https://github.com/ZR233/mbarrier/actions/workflows/build.yml)
 [![Crates.io](https://img.shields.io/crates/v/mbarrier.svg)](https://crates.io/crates/mbarrier)
 [![Documentation](https://docs.rs/mbarrier/badge.svg)](https://docs.rs/mbarrier)
 

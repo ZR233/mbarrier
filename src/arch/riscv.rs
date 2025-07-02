@@ -10,7 +10,6 @@ Both RISC-V 32-bit and 64-bit share the same memory barrier semantics:
 */
 
 use core::arch::asm;
-use core::sync::atomic::{Ordering, fence};
 
 /// RISC-V read memory barrier implementation.
 ///

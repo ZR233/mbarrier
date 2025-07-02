@@ -5,7 +5,6 @@ Based on Linux kernel arch/arm/include/asm/barrier.h
 */
 
 use core::arch::asm;
-use core::sync::atomic::{fence, Ordering};
 
 /// ARM read memory barrier implementation.
 /// 
