@@ -24,8 +24,8 @@ jobs:
           - armv7-unknown-linux-gnueabihf
           - arm-unknown-linux-gnueabihf
           # RISC-V targets
-          - riscv64gc-unknown-none
-          - riscv32gc-unknown-none
+          - riscv64gc-unknown-none-elf
+          - riscv32imac-unknown-none-elf
 
     steps:
     - uses: actions/checkout@v4
