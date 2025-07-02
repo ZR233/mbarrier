@@ -1,0 +1,47 @@
+/*!
+AArch64 (ARM64) architecture memory barrier implementations.
+
+Based on Linux kernel arch/arm64/include/asm/barrier.h
+*/
+
+use core::arch::asm;
+use core::sync::atomic::{fence, Ordering};
+
+/// AArch64 read memory barrier implementation.
+/// 
+/// Uses DSB (Data Synchronization Barrier) with LD (load) domain.
+#[inline(always)]
+pub fn rmb_impl() {
+    unsafe {
+        asm!("dsb ld", options(nostack, preserves_flags));
+    }
+}
+
+/// AArch64 write memory barrier implementation.
+/// 
+/// Uses DSB (Data Synchronization Barrier) with ST (store) domain.
+#[inline(always)]
+pub fn wmb_impl() {
+    unsafe {
+        asm!("dsb st", options(nostack, preserves_flags));
+    }
+}
+
+/// AArch64 general memory barrier implementation.
+/// 
+/// Uses DSB (Data Synchronization Barrier) with SY (full system) domain.
+#[inline(always)]
+pub fn mb_impl() {
+    unsafe {
+        asm!("dsb sy", options(nostack, preserves_flags));
+    }
+}
+
+/// AArch64 data dependency barrier implementation.
+/// 
+/// ARM64 respects data dependencies, so this is a no-op.
+/// The architecture guarantees that dependent loads are ordered.
+#[inline(always)]
+pub fn read_barrier_depends_impl() {
+    // No-op on ARM64 - data dependencies provide ordering
+}

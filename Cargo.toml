@@ -1,0 +1,45 @@
+[package]
+authors = ["Your Name <your@email.com>"]
+categories = ["concurrency", "no-std"]
+description = "Cross-platform memory barrier implementations for Rust, inspired by Linux kernel"
+edition = "2024"
+keywords = ["memory", "barrier", "sync", "atomic", "kernel"]
+license = "MIT OR Apache-2.0"
+name = "mbarrier"
+version = "0.1.0"
+
+[features]
+default = ["smp"]
+# Enable SMP (Symmetric Multi-Processing) barriers
+smp = []
+# Enable std library features (currently unused, for future expansion)
+std = []
+
+[dependencies]
+
+# Target-specific dependencies for inline assembly
+[target.'cfg(any(target_arch = "x86", target_arch = "x86_64"))'.dependencies]
+# x86 family uses the same barrier implementations
+
+[target.'cfg(any(target_arch = "arm", target_arch = "aarch64"))'.dependencies]
+
+[target.'cfg(any(target_arch = "riscv32", target_arch = "riscv64"))'.dependencies]
+
+[dev-dependencies]
+
+[[example]]
+name = "usage"
+path = "examples/usage.rs"
+
+[[example]]
+name = "performance"
+path = "examples/performance.rs"
+required-features = ["std"]
+
+[profile.release]
+codegen-units = 1
+lto = true
+panic = "abort"
+
+[profile.dev]
+panic = "abort"
