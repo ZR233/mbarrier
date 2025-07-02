@@ -26,10 +26,5 @@ fn main() {
     smp_mb();
     println!("SMP barriers executed");
     
-    // Data dependency barrier
-    read_barrier_depends();
-    smp_read_barrier_depends();
-    println!("Data dependency barriers executed");
-    
     println!("All barriers executed successfully!");
 }

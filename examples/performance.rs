@@ -47,10 +47,6 @@ fn main() {
     let mb_time = benchmark_barrier("mb()", mb);
     let smp_mb_time = benchmark_barrier("smp_mb()", smp_mb);
     
-    // Benchmark dependency barriers
-    let dep_time = benchmark_barrier("read_barrier_depends()", read_barrier_depends);
-    let smp_dep_time = benchmark_barrier("smp_read_barrier_depends()", smp_read_barrier_depends);
-    
     println!("");
     println!("Performance Analysis (overhead vs baseline):");
     println!("============================================");
@@ -71,8 +67,6 @@ fn main() {
     print_overhead("smp_rmb()", smp_rmb_time, baseline);
     print_overhead("smp_wmb()", smp_wmb_time, baseline);
     print_overhead("smp_mb()", smp_mb_time, baseline);
-    print_overhead("read_barrier_depends()", dep_time, baseline);
-    print_overhead("smp_read_barrier_depends()", smp_dep_time, baseline);
     
     println!("");
     println!("Architecture: {}", std::env::consts::ARCH);

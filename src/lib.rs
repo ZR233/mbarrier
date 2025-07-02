@@ -31,8 +31,6 @@ smp_mb();
 #![no_std]
 #![deny(missing_docs)]
 
-use core::sync::atomic::{Ordering, compiler_fence};
-
 /// Architecture-specific barrier implementations
 mod arch;
 
@@ -76,6 +74,7 @@ pub fn smp_rmb() {
     }
     #[cfg(not(feature = "smp"))]
     {
+        use core::sync::atomic::{Ordering, compiler_fence};
         compiler_fence(Ordering::Acquire)
     }
 }
@@ -91,6 +90,7 @@ pub fn smp_wmb() {
     }
     #[cfg(not(feature = "smp"))]
     {
+        use core::sync::atomic::{Ordering, compiler_fence};
         compiler_fence(Ordering::Release)
     }
 }
@@ -106,40 +106,8 @@ pub fn smp_mb() {
     }
     #[cfg(not(feature = "smp"))]
     {
+        use core::sync::atomic::{Ordering, compiler_fence};
         compiler_fence(Ordering::SeqCst)
-    }
-}
-
-/// Read memory barrier before conditional.
-///
-/// This is a variant of rmb() that is used before reading a condition
-/// that may have been modified by another CPU.
-#[inline(always)]
-pub fn rmb_before_conditional() {
-    rmb()
-}
-
-/// Data dependency barrier.
-///
-/// On architectures where data dependencies provide ordering guarantees,
-/// this may be a no-op. On others, it acts as a read barrier.
-#[inline(always)]
-pub fn read_barrier_depends() {
-    arch::read_barrier_depends_impl()
-}
-
-/// SMP data dependency barrier.
-///
-/// SMP version of read_barrier_depends().
-#[inline(always)]
-pub fn smp_read_barrier_depends() {
-    #[cfg(feature = "smp")]
-    {
-        read_barrier_depends()
-    }
-    #[cfg(not(feature = "smp"))]
-    {
-        // No-op on UP systems
     }
 }
 
@@ -156,8 +124,5 @@ mod tests {
         smp_rmb();
         smp_wmb();
         smp_mb();
-        rmb_before_conditional();
-        read_barrier_depends();
-        smp_read_barrier_depends();
     }
 }

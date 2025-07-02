@@ -41,14 +41,3 @@ pub fn mb_impl() {
         asm!("fence rw,rw", options(nostack, preserves_flags));
     }
 }
-
-/// RISC-V data dependency barrier implementation.
-///
-/// RISC-V has a relaxed memory model, so we need an actual barrier.
-#[inline(always)]
-pub fn read_barrier_depends_impl() {
-    // RISC-V needs explicit ordering for data dependencies
-    unsafe {
-        asm!("fence r,r", options(nostack, preserves_flags));
-    }
-}

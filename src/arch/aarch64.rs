@@ -36,12 +36,3 @@ pub fn mb_impl() {
         asm!("dsb sy", options(nostack, preserves_flags));
     }
 }
-
-/// AArch64 data dependency barrier implementation.
-/// 
-/// ARM64 respects data dependencies, so this is a no-op.
-/// The architecture guarantees that dependent loads are ordered.
-#[inline(always)]
-pub fn read_barrier_depends_impl() {
-    // No-op on ARM64 - data dependencies provide ordering
-}

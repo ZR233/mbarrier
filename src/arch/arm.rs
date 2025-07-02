@@ -54,13 +54,3 @@ pub fn mb_impl() {
         asm!("mcr p15, 0, {}, c7, c10, 5", in(reg) 0, options(nostack, preserves_flags));
     }
 }
-
-/// ARM data dependency barrier implementation.
-/// 
-/// ARM respects data dependencies in most cases, but we provide
-/// a light barrier for safety.
-#[inline(always)]
-pub fn read_barrier_depends_impl() {
-    // ARM generally respects data dependencies, but provide a light barrier
-    fence(Ordering::Acquire);
-}

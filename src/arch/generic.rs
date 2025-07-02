@@ -29,11 +29,3 @@ pub fn wmb_impl() {
 pub fn mb_impl() {
     fence(Ordering::SeqCst);
 }
-
-/// Generic data dependency barrier implementation.
-/// 
-/// Uses Rust's atomic fence with Acquire ordering.
-#[inline(always)]
-pub fn read_barrier_depends_impl() {
-    fence(Ordering::Acquire);
-}
