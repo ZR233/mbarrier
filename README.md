@@ -1,6 +1,6 @@
 # mbarrier
 
-[![CI](https://github.com/ZR233/mbarrier/actions/workflows/build.yml/badge.svg)](https://github.com/ZR233/mbarrier/actions/workflows/build.yml)
+[![CI](https://github.com/drivercraft/mbarrier/actions/workflows/build.yml/badge.svg)](https://github.com/drivercraft/mbarrier/actions/workflows/build.yml)
 [![Crates.io](https://img.shields.io/crates/v/mbarrier.svg)](https://crates.io/crates/mbarrier)
 [![Documentation](https://docs.rs/mbarrier/badge.svg)](https://docs.rs/mbarrier)
 

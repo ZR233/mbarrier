@@ -6,8 +6,8 @@ edition = "2024"
 keywords = ["memory", "barrier", "sync", "atomic", "kernel"]
 license = "MIT OR Apache-2.0"
 name = "mbarrier"
-repository = "https://github.com/ZR233/mbarrier"
-version = "0.1.2"
+repository = "https://github.com/drivercraft/mbarrier"
+version = "0.1.3"
 
 [features]
 default = ["smp"]
